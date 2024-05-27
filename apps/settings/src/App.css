@@ -1,0 +1,10 @@
+.App {
+  text-align: center;
+}
+
+.settingsForm {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 20px;
+}
