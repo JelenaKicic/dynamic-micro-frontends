@@ -3,7 +3,7 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
-import {useEffect} from "react";
+import {useCallback, useEffect} from "react";
 import {useGetModulesQuery} from "../services/settingsApi";
 
 export default function SettingsForm() {
@@ -46,28 +46,32 @@ export default function SettingsForm() {
         window.dispatchEvent(event)
     }
 
-    const semesterMatchesYear = (semester) => {
+    const semesterMatchesYear = useCallback((semester) => {
         return (year === 2 && (semester === "3" || semester === "4")) || (year === 3 && (semester === "5" || semester === "6")) || (year === 4 && (semester === "7" || semester === "8"));
-    }
+    }, [year]);
 
 
+    // Load persisted settings once on mount.
     useEffect(() => {
         setYear(parseInt(localStorage.getItem('year') || 1));
         setStudyProgram(parseInt(localStorage.getItem('studyProgram')));
         setModule(parseInt(localStorage.getItem('module')));
+    }, []);
 
-        data?.forEach(item => {
-            let firstFound = false;
-            if(semesterMatchesYear(item.semester)) {
-                if(!firstFound) {
-                    firstFound = true;
-                    setModule(item.epId);
-                    localStorage.setItem('module', "" + item.epId);
-                    dispatchCustomEvent("studyProgramsSettingsUpdated", {detail: {studyProgram: studyProgram, module: item.epId}});
-                }
-            }
-        });
-    }, [data, semesterMatchesYear, studyProgram]);
+    // Default the module to the first matching semester, but never override a
+    // selection the user (or localStorage) has already made that is still valid.
+    useEffect(() => {
+        if(!data) return;
+
+        const matching = data.filter(item => semesterMatchesYear(item.semester));
+        if(matching.length === 0) return;
+        if(matching.some(item => item.epId === module)) return;
+
+        const first = matching[0];
+        setModule(first.epId);
+        localStorage.setItem('module', "" + first.epId);
+        dispatchCustomEvent("studyProgramsSettingsUpdated", {detail: {studyProgram: studyProgram, module: first.epId}});
+    }, [data, studyProgram, module, semesterMatchesYear]);
 
 
 
@@ -114,9 +118,7 @@ export default function SettingsForm() {
                             label="Смјер"
                         >
                             {data && data.map(item => {
-                                if(semesterMatchesYear(item.semester)) {
-                                    return <MenuItem value={item.epId} key={item.code}>{item.name?.split(" - ")[1]}</MenuItem>
-                                }
+                                return (semesterMatchesYear(item.semester)) ? <MenuItem value={item.epId} key={item.code}>{item.name?.split(" - ")[1]}</MenuItem> : <React.Fragment />
                             })}
                         </Select>
                     </FormControl>

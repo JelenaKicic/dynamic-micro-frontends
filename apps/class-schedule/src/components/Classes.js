@@ -33,7 +33,7 @@ function Classes() {
 
     return (
         <Box sx={{paddingX: {xs: "5%", xl: "7%"}, paddingBottom: "2%", paddingTop: "2%"}}>
-            <TableContainer component={Paper}>
+            <TableContainer component={Paper} sx={{ maxWidth: "100%", overflowX: "auto" }}>
                 <Table sx={{ minWidth: 650, border: "1px solid #bababa" }} aria-label="simple table">
                     <TableHead>
                         <TableRow>
