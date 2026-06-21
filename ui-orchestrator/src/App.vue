@@ -72,7 +72,8 @@ const initializeSidebar = async () => {
   flex-direction: column;
   gap: 40px;
   padding: 20px;
-  background-color: aliceblue;
+  background-color: #f5f7f7;
+  border-right: 1px solid #e2e8f0;
   position: fixed;
 }
 

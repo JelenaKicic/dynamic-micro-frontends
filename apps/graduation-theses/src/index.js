@@ -22,6 +22,12 @@ import { Provider } from 'react-redux'
         });
 
         const theme = createTheme({
+            palette: {
+                primary: { main: '#0f766e' },
+            },
+            typography: {
+                fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            },
             components: {
                 MuiPopover: {
                     defaultProps: {

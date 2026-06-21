@@ -3,6 +3,9 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
+import Box from '@mui/material/Box';
+import Paper from '@mui/material/Paper';
+import Typography from '@mui/material/Typography';
 import {useCallback, useEffect} from "react";
 import {useGetModulesQuery} from "../services/settingsApi";
 
@@ -76,54 +79,62 @@ export default function SettingsForm() {
 
 
     return (
-        <div className={"settingsForm"}>
-            <FormControl sx={{ m: 1, minWidth: 120 }}>
-                <InputLabel id="demo-simple-select-standard-label">Година студија</InputLabel>
-                <Select
-                    labelId="demo-simple-select-standard-label"
-                    id="demo-simple-select-standard"
-                    value={year}
-                    onChange={updateYear}
-                    label="Година студија"
-                >
-                    <MenuItem value={1}>Прва Година</MenuItem>
-                    <MenuItem value={2}>Друга Година</MenuItem>
-                    <MenuItem value={3}>Трећа Година</MenuItem>
-                    <MenuItem value={4}>Четврта Година</MenuItem>
-                </Select>
-            </FormControl>
-            {year > 1 &&
-                <>
-                    <FormControl sx={{ m: 1, minWidth: 120 }}>
-                        <InputLabel id="demo-simple-select-filled-label">Студијски програм</InputLabel>
-                        <Select
-                            labelId="demo-simple-select-filled-label"
-                            id="demo-simple-select-filled"
-                            value={studyProgram}
-                            onChange={updateStudyProgramEvent}
-                            label="Студијски програм"
-                        >
-                            <MenuItem value={2}>Рачунарство и информатика</MenuItem>
-                            <MenuItem value={3}>Електроника и Телекомуникације</MenuItem>
-                            <MenuItem value={4}>Електроенергетика и Аутоматика</MenuItem>
-                        </Select>
-                    </FormControl>
-                    <FormControl sx={{ m: 1, minWidth: 120 }}>
-                        <InputLabel id="demo-simple-select-filled-label">Смјер</InputLabel>
-                        <Select
-                            labelId="demo-simple-select-filled-label"
-                            id="demo-simple-select-filled"
-                            value={module}
-                            onChange={updateModuleEvent}
-                            label="Смјер"
-                        >
-                            {data && data.map(item => {
-                                return (semesterMatchesYear(item.semester)) ? <MenuItem value={item.epId} key={item.code}>{item.name?.split(" - ")[1]}</MenuItem> : <React.Fragment />
-                            })}
-                        </Select>
-                    </FormControl>
-                </>
-            }
-        </div>
+        <Box sx={{ maxWidth: 560, mx: 'auto', px: { xs: 2, md: 4 }, py: 4 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+                <Box sx={{ width: 5, height: 32, borderRadius: 1, bgcolor: 'primary.main' }} />
+                <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                    Подешавања
+                </Typography>
+            </Box>
+            <Paper elevation={2} sx={{ p: { xs: 2, md: 3 }, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                <FormControl fullWidth>
+                    <InputLabel id="demo-simple-select-standard-label">Година студија</InputLabel>
+                    <Select
+                        labelId="demo-simple-select-standard-label"
+                        id="demo-simple-select-standard"
+                        value={year}
+                        onChange={updateYear}
+                        label="Година студија"
+                    >
+                        <MenuItem value={1}>Прва Година</MenuItem>
+                        <MenuItem value={2}>Друга Година</MenuItem>
+                        <MenuItem value={3}>Трећа Година</MenuItem>
+                        <MenuItem value={4}>Четврта Година</MenuItem>
+                    </Select>
+                </FormControl>
+                {year > 1 &&
+                    <>
+                        <FormControl fullWidth>
+                            <InputLabel id="demo-simple-select-filled-label">Студијски програм</InputLabel>
+                            <Select
+                                labelId="demo-simple-select-filled-label"
+                                id="demo-simple-select-filled"
+                                value={studyProgram}
+                                onChange={updateStudyProgramEvent}
+                                label="Студијски програм"
+                            >
+                                <MenuItem value={2}>Рачунарство и информатика</MenuItem>
+                                <MenuItem value={3}>Електроника и Телекомуникације</MenuItem>
+                                <MenuItem value={4}>Електроенергетика и Аутоматика</MenuItem>
+                            </Select>
+                        </FormControl>
+                        <FormControl fullWidth>
+                            <InputLabel id="demo-simple-select-module-label">Смјер</InputLabel>
+                            <Select
+                                labelId="demo-simple-select-module-label"
+                                id="demo-simple-select-module"
+                                value={module}
+                                onChange={updateModuleEvent}
+                                label="Смјер"
+                            >
+                                {data && data.map(item => {
+                                    return (semesterMatchesYear(item.semester)) ? <MenuItem value={item.epId} key={item.code}>{item.name?.split(" - ")[1]}</MenuItem> : <React.Fragment />
+                                })}
+                            </Select>
+                        </FormControl>
+                    </>
+                }
+            </Paper>
+        </Box>
     );
 }

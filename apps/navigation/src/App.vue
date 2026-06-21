@@ -29,37 +29,33 @@ onMounted(() => {
 </template>
 
 <style scoped>
-header {
-  line-height: 1.5;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
 #navigation {
-    padding-top: 40px;
-    bottom: 40px;
     display: flex;
     flex-direction: column;
+    padding: 16px 0;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 .routerLink {
     text-decoration: none;
-    color: gray;
-    font-size: 20px;
-    padding: 20px;
-    border-bottom: 1px solid #e1e9f0;
+    color: #475569;
+    font-size: 16px;
+    font-weight: 500;
+    padding: 14px 24px;
+    border-left: 3px solid transparent;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
 .routerLink:hover {
-    background-color: #e1e9f0;
+    background-color: #f0fdfa;
+    color: #0f766e;
 }
 
 .routerLink:local-link {
     font-weight: 600;
-    background-color: #e1e9f0;
+    color: #0f766e;
+    background-color: #f0fdfa;
+    border-left-color: #0f766e;
 }
 
 </style>

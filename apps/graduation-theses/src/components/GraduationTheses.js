@@ -2,13 +2,11 @@ import * as React from 'react';
 import TablePagination from '@mui/material/TablePagination';
 import {useGetThesesQuery} from "../services/thesesApi";
 import Loader from "./Loader";
-import TableRow from '@mui/material/TableRow';
 import CardComponent from "./CardComponent";
+import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableHead from '@mui/material/TableHead';
-import TableContainer from '@mui/material/TableContainer';
+import Typography from '@mui/material/Typography';
+import SchoolIcon from '@mui/icons-material/School';
 
 function GraduationTheses() {
     const [page, setPage] = React.useState(0);
@@ -29,41 +27,47 @@ function GraduationTheses() {
         return <Loader/>;
 
     return (
-        <Paper sx={{paddingX: {xs: "5%", xl: "7%"}, paddingBottom: "2%", paddingTop: "2%"}}>
-            <TableContainer >
-                <Table stickyHeader aria-label="sticky table">
-                    <TableHead>
-                        <TableRow>
-                            <TablePagination
-                                component="div"
-                                count={data.total}
-                                page={page}
-                                onPageChange={handleChangePage}
-                                rowsPerPage={rowsPerPage}
-                                onRowsPerPageChange={handleChangeRowsPerPage}
-                                labelRowsPerPage={"Број редова по страници:"}
-                            />
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {data.content.map(item =>
-                            <TableRow>
-                                <CardComponent
-                                    key={item.id}
-                                    title={item.tema}
-                                    description={item.obrazlozenje}
-                                    status={item.trenutniStatus.statusZavrsnogRada.naziv}
-                                    mentor={item.mentor.ime}
-                                    headOfBoard={item.predsjednikKomisije.ime}
-                                    boardMember={item.clanKomisije.ime}
-                                    student={item.studentIme}
-                                />
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-        </Paper>
+        <Box sx={{ maxWidth: 1000, mx: 'auto', px: { xs: 2, md: 4 }, py: 4 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+                <SchoolIcon color="primary" fontSize="large" />
+                <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                    Завршни радови
+                </Typography>
+            </Box>
+
+            {error && (
+                <Typography color="error">Грешка при учитавању завршних радова.</Typography>
+            )}
+
+            {!error && data && (
+                <>
+                    <Paper elevation={1} sx={{ borderRadius: 2, mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                        <TablePagination
+                            component="div"
+                            count={data.total}
+                            page={page}
+                            onPageChange={handleChangePage}
+                            rowsPerPage={rowsPerPage}
+                            onRowsPerPageChange={handleChangeRowsPerPage}
+                            labelRowsPerPage={"Број редова по страници:"}
+                        />
+                    </Paper>
+
+                    {data.content.map(item =>
+                        <CardComponent
+                            key={item.id}
+                            title={item.tema}
+                            description={item.obrazlozenje}
+                            status={item.trenutniStatus.statusZavrsnogRada.naziv}
+                            mentor={item.mentor.ime}
+                            headOfBoard={item.predsjednikKomisije.ime}
+                            boardMember={item.clanKomisije.ime}
+                            student={item.studentIme}
+                        />
+                    )}
+                </>
+            )}
+        </Box>
     );
 }
 
