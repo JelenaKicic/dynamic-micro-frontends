@@ -17,12 +17,23 @@ onMounted(() => {
     routes.value = props.routes;
 
 })
+
+const navigate = (event, path) => {
+    // Use the host router instead of letting the <a> do a full reload.
+    const hostRouter = window.__hostRouter;
+    if (!hostRouter) return; // fall back to native <a href> navigation
+
+    event.preventDefault();
+    if (window.location.pathname === path) return;
+
+    hostRouter.push(path);
+}
 </script>
 
 <template>
   <main>
     <nav id="navigation">
-        <a class="routerLink" v-for="route in routes" :href="route.path" :key="route.path">{{route.name}}</a>
+        <a class="routerLink" v-for="route in routes" :href="route.path" :key="route.path" @click="navigate($event, route.path)">{{route.name}}</a>
     </nav>
     <div id="children"></div>
   </main>

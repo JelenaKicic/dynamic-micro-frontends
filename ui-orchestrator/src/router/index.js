@@ -1,3 +1,4 @@
+import { ref } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import {collection, doc, getDoc, getDocs, onSnapshot} from "firebase/firestore";
 import db from "@/firebase/init.js";
@@ -7,6 +8,12 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [],
 });
+
+// Exposed so micro-apps can navigate via router.push without a full reload.
+window.__hostRouter = router;
+
+// Bumped by the snapshot when a route is added/removed so the nav can refresh.
+export const routesUpdated = ref(0);
 
 export const loadRoutes = async () => {
   const collectionRef = collection(db, "route-apps");
@@ -34,6 +41,7 @@ export const loadRoutes = async () => {
       if(change.doc.id !== "all") {
         if (change.type === "removed" || change.type === "modified") {
           router.removeRoute(change.doc.data().linkName)
+          routesUpdated.value++;
         }
 
         if (change.type === "removed") {
@@ -56,6 +64,7 @@ export const loadRoutes = async () => {
             route.path = "/";
           }
           addNewRoute(route);
+          routesUpdated.value++;
 
           router.replace(router.currentRoute.value.fullPath);
         }

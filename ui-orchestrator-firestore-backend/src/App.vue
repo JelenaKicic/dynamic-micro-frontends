@@ -4,12 +4,16 @@ import {onMounted, ref} from "vue";
 import {onSnapshot, doc} from "firebase/firestore";
 import db from "@/firebase/init.js";
 import {initiateAndObserveMicroApp} from "@/router/WebComponent.js";
+import {routesUpdated} from "@/router/index.js";
 
 const router = useRouter();
 const routes = ref([])
 const sidebarData = ref({})
 
 const sidebarOpen = ref(true)
+
+let oldSidebarData = null;
+let oldRoutesVersion = routesUpdated.value;
 
 router.afterEach(() => {
     routes.value = [];
@@ -19,6 +23,11 @@ router.afterEach(() => {
             name: route.name
         })
     });
+
+    // Re-mount only when the config or the route set changed; plain navigation
+    // changes neither, so we skip it and avoid flashing the nav app.
+    if (sidebarData.value === oldSidebarData && routesUpdated.value === oldRoutesVersion) return;
+    oldRoutesVersion = routesUpdated.value;
 
     if(sidebarData.value)
         initializeSidebar();
@@ -36,6 +45,10 @@ onMounted(async () => {
 
 const initializeSidebar = async () => {
     if(sidebarData.value?.root) {
+        // Baseline so the first afterEach doesn't re-mount.
+        oldSidebarData = sidebarData.value;
+        oldRoutesVersion = routesUpdated.value;
+
         for (let i = 0; i < sidebarData.value.apps?.length; i++) {
             await initiateAndObserveMicroApp(sidebarData.value.apps[i], {parentSelector: 'div[id="apps"]'});
         }
