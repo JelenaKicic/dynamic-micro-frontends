@@ -1,9 +1,10 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class RouteVersionBase(BaseModel):
     route_id: int
     name: str
+    percentage: int = Field(default=100, ge=0, le=100)
 
 
 class RouteVersionCreate(RouteVersionBase):

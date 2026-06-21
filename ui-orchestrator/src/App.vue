@@ -24,8 +24,7 @@ router.afterEach(() => {
         })
     });
 
-    // Re-mount only when the config or the route set changed; plain navigation
-    // changes neither, so we skip it and avoid flashing the nav app.
+    // Re-mount only when the config or the route set changed
     if (sidebarData.value === oldSidebarData && routesUpdated.value === oldRoutesVersion) return;
     oldRoutesVersion = routesUpdated.value;
 
