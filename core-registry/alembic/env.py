@@ -12,6 +12,7 @@ from app.models import app as app_model  # noqa: F401
 from app.models import file as file_model  # noqa: F401
 from app.models import route as route_model  # noqa: F401
 from app.models import route_version as route_version_model  # noqa: F401
+from app.models import visit as visit_model  # noqa: F401
 
 config = context.config
 

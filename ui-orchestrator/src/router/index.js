@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import {initiateAndObserveMicroApp} from "@/router/WebComponent.js";
-import {openCoreStream} from "@/stream/coreStream.js";
+import {openCoreStream, postVisit} from "@/stream/coreStream.js";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -10,6 +10,12 @@ const router = createRouter({
 
 // Exposed the router for the child apps
 window.__hostRouter = router;
+
+router.afterEach((to) => {
+  if (to.matched.length > 0) {
+    postVisit(to.path);
+  }
+});
 
 // Used for nav refresh when routes are updated
 export const routesUpdated = ref(0);

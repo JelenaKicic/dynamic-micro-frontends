@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import apps, route_versions, routes, stream
+from app.api.routes import apps, route_versions, routes, stream, visits
 
 app = FastAPI(title="Core Registry")
 
@@ -18,6 +18,7 @@ app.include_router(routes.router)
 app.include_router(route_versions.router)
 app.include_router(apps.router)
 app.include_router(stream.router)
+app.include_router(visits.router)
 
 
 @app.get("/")

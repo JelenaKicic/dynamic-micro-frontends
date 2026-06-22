@@ -1,5 +1,14 @@
 const CORE_REGISTRY_URL = "http://localhost:8000";
 
+export function postVisit(link) {
+  fetch(`${CORE_REGISTRY_URL}/visits`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ link }),
+  }).catch((error) => console.warn("[core-stream] visit post failed", error));
+}
+
 // withCredentials sends the ab_id cookie
 export function openCoreStream({ onSnapshot, onChange } = {}) {
   const source = new EventSource(`${CORE_REGISTRY_URL}/stream`, {
