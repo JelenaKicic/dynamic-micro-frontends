@@ -8,6 +8,7 @@ from app.schemas.route_version import (
     RouteVersionUpdate,
 )
 from app.services import route_version as route_version_service
+from app.services.broker import broker
 
 router = APIRouter(prefix="/route-versions", tags=["route-versions"])
 
@@ -18,7 +19,9 @@ router = APIRouter(prefix="/route-versions", tags=["route-versions"])
 def create_route_version(
     data: RouteVersionCreate, db: Session = Depends(get_db)
 ):
-    return route_version_service.create_route_version(db, data)
+    route_version = route_version_service.create_route_version(db, data)
+    broker.publish()
+    return route_version
 
 
 @router.get("/", response_model=list[RouteVersionRead])
@@ -53,9 +56,11 @@ def update_route_version(
         raise HTTPException(
             status_code=404, detail="Route version not found"
         )
-    return route_version_service.update_route_version(
+    updated = route_version_service.update_route_version(
         db, route_version, data
     )
+    broker.publish()
+    return updated
 
 
 @router.delete(
@@ -72,3 +77,4 @@ def delete_route_version(
             status_code=404, detail="Route version not found"
         )
     route_version_service.delete_route_version(db, route_version)
+    broker.publish()

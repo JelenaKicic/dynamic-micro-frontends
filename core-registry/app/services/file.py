@@ -3,10 +3,6 @@ from sqlalchemy.orm import Session
 from app.models.file import File
 from app.schemas.file import FileCreate
 
-# This service has no API routes of its own. It is only used by the app
-# service, which owns the transaction (commit/rollback), so the functions
-# here add/delete on the session but never commit.
-
 
 def create_files(
     db: Session, app_id: int, files: list[FileCreate]
@@ -22,6 +18,6 @@ def create_files(
 def replace_files(
     db: Session, app_id: int, files: list[FileCreate]
 ) -> list[File]:
-    # Drop the app's current files, then recreate from the new payload.
+    # Drop the app's current files, then recreate from the new payload
     db.query(File).filter(File.app_id == app_id).delete()
     return create_files(db, app_id, files)

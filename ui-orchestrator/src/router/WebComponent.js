@@ -1,5 +1,3 @@
-import db from "@/firebase/init.js";
-import {collection, doc, getDoc, getDocs, onSnapshot} from "firebase/firestore";
 
 const createWebComponent = (name, childElements) => {
     return class WebComponentClass extends HTMLElement {
@@ -131,40 +129,29 @@ const createWebComponent = (name, childElements) => {
     }
 }
 
-export const initiateAndObserveMicroApp = async (appId, args) => {
-    const docReference = doc(db, "microfrontends", appId);
-    let app = {}
-    let oldData;
-    await onSnapshot(docReference, async (doc) => {
-        console.log(doc.id)
-        console.log(JSON.stringify(doc.data()))
-        const data = doc.data();
-        let element = document.querySelector(data.name);
+export const initiateAndObserveMicroApp = async (appId, args, data = null) => {
+    if (!data) return;
 
-        if (element == null) {
-            element = document.createElement(data.name);
-        }
+    const parent = document.querySelector(args.parentSelector);
+    if (parent == null) return;
 
-        if (oldData?.css !== data.css) {
-            element.setAttribute("css-url", JSON.stringify(data.css));
-        }
-        if (oldData?.js !== data.js) {
-            element.setAttribute("js-url", JSON.stringify(data.js));
-        }
+    let element = parent.querySelector(data.name);
 
-        if (args.props) {
-            element.setAttribute("props", JSON.stringify(args.props));
-        }
-
-        if (!customElements.get(data.name)) {
-            customElements.define(data.name, createWebComponent(data.name, element.children));
-        }
-
-        const parent = document.querySelector(args.parentSelector);
+    if (element == null) {
+        element = document.createElement(data.name);
         parent.appendChild(element);
+    }
 
-        oldData = data;
-    });
+    element.setAttribute("css-url", JSON.stringify(data.css));
+    element.setAttribute("js-url", JSON.stringify(data.js));
+
+    if (args.props) {
+        element.setAttribute("props", JSON.stringify(args.props));
+    }
+
+    if (!customElements.get(data.name)) {
+        customElements.define(data.name, createWebComponent(data.name, element.children));
+    }
 }
 
 export default createWebComponent;

@@ -20,7 +20,7 @@ def create_app(db: Session, data: AppCreate) -> App:
         position=data.position,
     )
     db.add(app)
-    db.flush()  # assigns app.id without committing yet
+    db.flush()
 
     # Files are created together with the app, in the same transaction.
     file_service.create_files(db, app.id, data.files)

@@ -1,74 +1,116 @@
 import { ref } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
-import {collection, doc, getDoc, getDocs, onSnapshot} from "firebase/firestore";
-import db from "@/firebase/init.js";
-import createWebComponent, {initiateAndObserveMicroApp} from "@/router/WebComponent.js";
+import {initiateAndObserveMicroApp} from "@/router/WebComponent.js";
+import {openCoreStream} from "@/stream/coreStream.js";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [],
 });
 
-// Exposed so micro-apps can navigate via router.push without a full reload.
+// Exposed the router for the child apps
 window.__hostRouter = router;
 
-// Bumped by the snapshot when a route is added/removed so the nav can refresh.
+// Used for nav refresh when routes are updated
 export const routesUpdated = ref(0);
 
-export const loadRoutes = async () => {
-  const collectionRef = collection(db, "route-apps");
+const SIDEBAR_LINK = "**";
 
-  const querySnapshot = await getDocs(collectionRef);
-  querySnapshot.forEach((doc) => {
-    if(doc.id !== "all") {
-      const route = {
-        id: doc.id,
-        path: `/${doc.id}`,
-        apps: doc.data().apps,
-        routeName: doc.data().linkName
-      }
+export const sidebar = ref({ root: null, apps: [] });
 
-      if (doc.data().isHome) {
-        route.path = "/";
-      }
-      addNewRoute(route);
-    }
+const routeRegistry = new Map();
+
+const linkToId = (link) =>
+  link === "/" ? "home" : link.replace(/^\//, "").replaceAll("/", "-");
+
+const updateSidebar = (route) => {
+  const apps = route.apps || [];
+  sidebar.value = {
+    root: apps.find((app) => app.position === "navigation") || null,
+    apps: apps.filter((app) => app.position === "sidebar"),
+  };
+};
+
+const registerRoute = (route) => {
+  if (route.link === SIDEBAR_LINK) {
+    updateSidebar(route);
+    return;
+  }
+  addNewRoute({
+    id: linkToId(route.link),
+    path: route.link,
+    apps: route.apps,
+    routeName: route.name,
   });
+  routeRegistry.set(route.id, { name: route.name, path: route.link });
+};
 
+const unregisterRoute = (routeId) => {
+  const existing = routeRegistry.get(routeId);
+  if (existing && router.hasRoute(existing.name)) {
+    router.removeRoute(existing.name);
+  }
+  routeRegistry.delete(routeId);
+};
 
-  onSnapshot(collectionRef, (snapshot) => {
-    snapshot.docChanges().forEach((change) => {
-      if(change.doc.id !== "all") {
-        if (change.type === "removed" || change.type === "modified") {
-          router.removeRoute(change.doc.data().linkName)
-          routesUpdated.value++;
-        }
+const applyChange = (change) => {
+  const route = change.route;
+  if (route.link === SIDEBAR_LINK) {
+    if (change.type === "removed") {
+      sidebar.value = { root: null, apps: [] };
+    } else {
+      updateSidebar(route);
+    }
+    return;
+  }
 
-        if (change.type === "removed") {
-          if (router.currentRoute.value.path !== `/${change.doc.id}`) {
-            router.replace(router.currentRoute.value.fullPath);
-          } else {
-            router.back()
-          }
-        }
+  if (change.type === "removed") {
+    const removedPath = routeRegistry.get(route.id)?.path;
+    unregisterRoute(route.id);
+    routesUpdated.value++;
+    if (router.currentRoute.value.path === removedPath) {
+      router.back();
+    } else {
+      router.replace(router.currentRoute.value.fullPath);
+    }
+    return;
+  }
 
-        if (!router.hasRoute(change.doc.data().linkName) && (change.type === "added" || change.type === "modified")) {
-          const route = {
-            id: change.doc.id,
-            path: `/${change.doc.id}`,
-            apps: change.doc.data().apps,
-            routeName: change.doc.data().linkName
-          }
+  if (change.type === "added") {
+    registerRoute(route);
+    routesUpdated.value++;
+    router.replace(router.currentRoute.value.fullPath);
+    return;
+  }
 
-          if (change.doc.data().isHome) {
-            route.path = "/";
-          }
-          addNewRoute(route);
-          routesUpdated.value++;
+  const previousPath = routeRegistry.get(route.id)?.path;
+  const structural = change.changed?.some((field) => field === "link" || field === "name");
+  unregisterRoute(route.id);
+  registerRoute(route);
 
-          router.replace(router.currentRoute.value.fullPath);
-        }
-      }
+  if (structural) {
+    routesUpdated.value++;
+    if (previousPath && router.currentRoute.value.path === previousPath) {
+      router.replace(route.link);
+    } else {
+      router.replace(router.currentRoute.value.fullPath);
+    }
+  } else if (router.currentRoute.value.path === route.link) {
+    const parentSelector = `div[id="${linkToId(route.link)}"]`;
+    for (const app of route.apps) {
+      initiateAndObserveMicroApp(app.name, { parentSelector }, app);
+    }
+  }
+};
+
+export const loadRoutes = async () => {
+  await new Promise((resolve) => {
+    openCoreStream({
+      onSnapshot: (snapshot) => {
+        snapshot.routes.forEach(registerRoute);
+        resolve();
+      },
+      onChange: applyChange,
     });
   });
 };
@@ -88,8 +130,10 @@ const addNewRoute = (route) => {
     },
     methods: {
       async fetchApps(routeMetaFields) {
+        // Wait for this route's container div to be in the DOM before rendering
+        await this.$nextTick();
         for (const app of routeMetaFields.apps) {
-          await initiateAndObserveMicroApp(app, { parentSelector: `div[id="${routeMetaFields.routeId}"]` });
+          await initiateAndObserveMicroApp(app.name, { parentSelector: `div[id="${routeMetaFields.routeId}"]` }, app);
         }
       },
     },

@@ -1,63 +1,40 @@
 <script setup>
-import {RouterView, useRouter} from 'vue-router'
-import {onMounted, ref} from "vue";
-import {onSnapshot, doc} from "firebase/firestore";
-import db from "@/firebase/init.js";
+import {RouterView} from 'vue-router'
+import {onMounted, ref, watch} from "vue";
 import {initiateAndObserveMicroApp} from "@/router/WebComponent.js";
-import {routesUpdated} from "@/router/index.js";
+import router, {routesUpdated, sidebar} from "@/router/index.js";
 
-const router = useRouter();
 const routes = ref([])
-const sidebarData = ref({})
-
 const sidebarOpen = ref(true)
 
-let oldSidebarData = null;
-let oldRoutesVersion = routesUpdated.value;
-
-router.afterEach(() => {
-    routes.value = [];
-    router.getRoutes().forEach((route) => {
-        routes.value.push({
-            path: route.path,
-            name: route.name
-        })
-    });
-
-    // Re-mount only when the config or the route set changed
-    if (sidebarData.value === oldSidebarData && routesUpdated.value === oldRoutesVersion) return;
-    oldRoutesVersion = routesUpdated.value;
-
-    if(sidebarData.value)
-        initializeSidebar();
-})
-
-onMounted(async () => {
-    const docReference = doc(db, "route-apps", "all");
-
-    onSnapshot(docReference, async (doc) => {
-        sidebarData.value = doc.data();
-
-        await initializeSidebar();
-    });
-});
+const buildRoutes = () => {
+    routes.value = router.getRoutes().map((route) => ({
+        path: route.path,
+        name: route.name,
+    }));
+};
 
 const initializeSidebar = async () => {
-    if(sidebarData.value?.root) {
-        // Baseline so the first afterEach doesn't re-mount.
-        oldSidebarData = sidebarData.value;
-        oldRoutesVersion = routesUpdated.value;
+    if (!sidebar.value.root) return;
 
-        for (let i = 0; i < sidebarData.value.apps?.length; i++) {
-            await initiateAndObserveMicroApp(sidebarData.value.apps[i], {parentSelector: 'div[id="apps"]'});
-        }
-
-        await initiateAndObserveMicroApp(sidebarData.value.root, {
-            parentSelector: 'div[id="navigation"]',
-            props: {routes: routes.value}
-        });
+    for (const app of sidebar.value.apps) {
+        await initiateAndObserveMicroApp(app.name, {parentSelector: 'div[id="apps"]'}, app);
     }
-}
+
+    await initiateAndObserveMicroApp(sidebar.value.root.name, {
+        parentSelector: 'div[id="navigation"]',
+        props: {routes: routes.value}
+    }, sidebar.value.root);
+};
+
+const refreshSidebar = async () => {
+    buildRoutes();
+    await initializeSidebar();
+};
+
+onMounted(refreshSidebar);
+watch(sidebar, refreshSidebar, {deep: true});
+watch(routesUpdated, refreshSidebar);
 
 </script>
 

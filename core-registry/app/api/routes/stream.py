@@ -6,7 +6,8 @@ from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
 
 from app.db.session import SessionLocal
-from app.services.stream import build_snapshot
+from app.services.broker import broker
+from app.services.stream import build_view, diff_views
 
 router = APIRouter(tags=["stream"])
 
@@ -19,6 +20,14 @@ def _sse(event: str, data: dict) -> str:
     return f"event: {event}\ndata: {json.dumps(data)}\n\n"
 
 
+def _view_for(visitor_id: str) -> dict:
+    database = SessionLocal()
+    try:
+        return build_view(database, visitor_id)
+    finally:
+        database.close()
+
+
 @router.get("/stream")
 async def stream(request: Request):
     visitor_id = request.cookies.get(AB_COOKIE_NAME)
@@ -26,17 +35,27 @@ async def stream(request: Request):
     if new_visitor:
         visitor_id = uuid4().hex
 
-    database = SessionLocal()
-    try:
-        snapshot = build_snapshot(database, visitor_id)
-    finally:
-        database.close()
+    broker.bind_loop(asyncio.get_running_loop())
 
     async def event_generator():
-        yield _sse("snapshot", snapshot)
-        while not await request.is_disconnected():
-            await asyncio.sleep(HEARTBEAT_SECONDS)
-            yield ": keepalive\n\n"
+        queue = broker.subscribe()
+        try:
+            view = _view_for(visitor_id)
+            yield _sse("snapshot", {"routes": list(view.values())})
+
+            while not await request.is_disconnected():
+                try:
+                    await asyncio.wait_for(queue.get(), timeout=HEARTBEAT_SECONDS)
+                except asyncio.TimeoutError:
+                    yield ": keepalive\n\n"
+                    continue
+
+                new_view = _view_for(visitor_id)
+                for change in diff_views(view, new_view):
+                    yield _sse("change", change)
+                view = new_view
+        finally:
+            broker.unsubscribe(queue)
 
     response = StreamingResponse(
         event_generator(),

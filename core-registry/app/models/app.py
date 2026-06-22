@@ -7,6 +7,7 @@ from app.db.session import Base
 
 
 class Position(str, enum.Enum):
+    navigation = "navigation"
     sidebar = "sidebar"
     center = "center"
 
@@ -19,8 +20,6 @@ class App(Base):
         Integer, ForeignKey("route_versions.id"), nullable=False
     )
     name = Column(String, nullable=False)
-    # Stored as a string; allowed values are enforced by the Position enum
-    # on the Pydantic schemas.
     position = Column(String, nullable=False)
 
     route_version = relationship("RouteVersion", back_populates="apps")
