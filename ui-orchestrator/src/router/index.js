@@ -8,7 +8,7 @@ const router = createRouter({
   routes: [],
 });
 
-// Exposed the router for the child apps
+// Exposed so micro-apps can navigate via router.push without a full reload.
 window.__hostRouter = router;
 
 router.afterEach((to) => {
@@ -17,14 +17,13 @@ router.afterEach((to) => {
   }
 });
 
-// Used for nav refresh when routes are updated
+// Bumped by the stream when a route is added/removed so the nav can refresh.
 export const routesUpdated = ref(0);
 
+// Routes flagged with this link render in the sidebar instead of as a page.
 const SIDEBAR_LINK = "**";
 
 export const sidebar = ref({ root: null, apps: [] });
-
-const routeRegistry = new Map();
 
 const linkToId = (link) =>
   link === "/" ? "home" : link.replace(/^\//, "").replaceAll("/", "-");
@@ -37,86 +36,61 @@ const updateSidebar = (route) => {
   };
 };
 
-const registerRoute = (route) => {
-  if (route.link === SIDEBAR_LINK) {
-    updateSidebar(route);
-    return;
-  }
-  addNewRoute({
-    id: linkToId(route.link),
-    path: route.link,
-    apps: route.apps,
-    routeName: route.name,
-  });
-  routeRegistry.set(route.id, { name: route.name, path: route.link });
-};
-
-const unregisterRoute = (routeId) => {
-  const existing = routeRegistry.get(routeId);
-  if (existing && router.hasRoute(existing.name)) {
-    router.removeRoute(existing.name);
-  }
-  routeRegistry.delete(routeId);
-};
-
-const applyChange = (change) => {
-  const route = change.route;
-  if (route.link === SIDEBAR_LINK) {
-    if (change.type === "removed") {
-      sidebar.value = { root: null, apps: [] };
-    } else {
-      updateSidebar(route);
-    }
-    return;
-  }
-
-  if (change.type === "removed") {
-    const removedPath = routeRegistry.get(route.id)?.path;
-    unregisterRoute(route.id);
-    routesUpdated.value++;
-    if (router.currentRoute.value.path === removedPath) {
-      router.back();
-    } else {
-      router.replace(router.currentRoute.value.fullPath);
-    }
-    return;
-  }
-
-  if (change.type === "added") {
-    registerRoute(route);
-    routesUpdated.value++;
-    router.replace(router.currentRoute.value.fullPath);
-    return;
-  }
-
-  const previousPath = routeRegistry.get(route.id)?.path;
-  const structural = change.changed?.some((field) => field === "link" || field === "name");
-  unregisterRoute(route.id);
-  registerRoute(route);
-
-  if (structural) {
-    routesUpdated.value++;
-    if (previousPath && router.currentRoute.value.path === previousPath) {
-      router.replace(route.link);
-    } else {
-      router.replace(router.currentRoute.value.fullPath);
-    }
-  } else if (router.currentRoute.value.path === route.link) {
-    const parentSelector = `div[id="${linkToId(route.link)}"]`;
-    for (const app of route.apps) {
-      initiateAndObserveMicroApp(app.name, { parentSelector }, app);
-    }
-  }
-};
-
 export const loadRoutes = async () => {
   await new Promise((resolve) => {
     openCoreStream({
       onSnapshot: (snapshot) => {
-        snapshot.routes.forEach(registerRoute);
+        snapshot.routes.forEach((streamRoute) => {
+          if (streamRoute.link === SIDEBAR_LINK) {
+            updateSidebar(streamRoute);
+          } else {
+            addNewRoute({
+              id: linkToId(streamRoute.link),
+              path: streamRoute.link,
+              apps: streamRoute.apps,
+              routeName: streamRoute.name,
+            });
+          }
+        });
         resolve();
       },
-      onChange: applyChange,
+      onChange: (change) => {
+        const streamRoute = change.route;
+
+        if (streamRoute.link === SIDEBAR_LINK) {
+          if (change.type === "removed") {
+            sidebar.value = { root: null, apps: [] };
+          } else {
+            updateSidebar(streamRoute);
+          }
+          return;
+        }
+
+        if (change.type === "removed" || change.type === "modified") {
+          router.removeRoute(streamRoute.name);
+          routesUpdated.value++;
+        }
+
+        if (change.type === "removed") {
+          if (router.currentRoute.value.path !== streamRoute.link) {
+            router.replace(router.currentRoute.value.fullPath);
+          } else {
+            router.back();
+          }
+        }
+
+        if (!router.hasRoute(streamRoute.name) && (change.type === "added" || change.type === "modified")) {
+          addNewRoute({
+            id: linkToId(streamRoute.link),
+            path: streamRoute.link,
+            apps: streamRoute.apps,
+            routeName: streamRoute.name,
+          });
+          routesUpdated.value++;
+
+          router.replace(router.currentRoute.value.fullPath);
+        }
+      },
     });
   });
 };
@@ -136,10 +110,9 @@ const addNewRoute = (route) => {
     },
     methods: {
       async fetchApps(routeMetaFields) {
-        // Wait for this route's container div to be in the DOM before rendering
         await this.$nextTick();
         for (const app of routeMetaFields.apps) {
-          await initiateAndObserveMicroApp(app.name, { parentSelector: `div[id="${routeMetaFields.routeId}"]` }, app);
+          await initiateAndObserveMicroApp({ parentSelector: `div[id="${routeMetaFields.routeId}"]` }, app);
         }
       },
     },

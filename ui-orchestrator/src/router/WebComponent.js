@@ -129,7 +129,7 @@ const createWebComponent = (name, childElements) => {
     }
 }
 
-export const initiateAndObserveMicroApp = async (appId, args, data = null) => {
+export const initiateAndObserveMicroApp = async (args, data = null) => {
     if (!data) return;
 
     const parent = document.querySelector(args.parentSelector);

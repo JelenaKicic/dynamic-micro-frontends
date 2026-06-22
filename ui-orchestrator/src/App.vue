@@ -18,10 +18,10 @@ const initializeSidebar = async () => {
     if (!sidebar.value.root) return;
 
     for (const app of sidebar.value.apps) {
-        await initiateAndObserveMicroApp(app.name, {parentSelector: 'div[id="apps"]'}, app);
+        await initiateAndObserveMicroApp({parentSelector: 'div[id="apps"]'}, app);
     }
 
-    await initiateAndObserveMicroApp(sidebar.value.root.name, {
+    await initiateAndObserveMicroApp({
         parentSelector: 'div[id="navigation"]',
         props: {routes: routes.value}
     }, sidebar.value.root);
