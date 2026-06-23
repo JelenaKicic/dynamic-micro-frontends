@@ -19,9 +19,8 @@ onMounted(() => {
 })
 
 const navigate = (event, path) => {
-    // Use the host router instead of letting the <a> do a full reload.
     const hostRouter = window.__hostRouter;
-    if (!hostRouter) return; // fall back to native <a href> navigation
+    if (!hostRouter) return;
 
     event.preventDefault();
     if (window.location.pathname === path) return;
