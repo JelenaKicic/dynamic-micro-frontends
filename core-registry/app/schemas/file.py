@@ -9,7 +9,7 @@ class FileBase(BaseModel):
 
 
 class FileCreate(FileBase):
-    pass
+    id: int | None = None
 
 
 class FileRead(FileBase):

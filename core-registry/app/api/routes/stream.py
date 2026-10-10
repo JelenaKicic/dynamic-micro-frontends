@@ -5,9 +5,8 @@ from uuid import uuid4
 from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
 
-from app.db.session import SessionLocal
 from app.services.broker import broker
-from app.services.stream import build_view, diff_views
+from app.services.stream import current_snapshot, diff_views
 
 router = APIRouter(tags=["stream"])
 
@@ -17,15 +16,7 @@ HEARTBEAT_SECONDS = 15
 
 
 def _sse(event: str, data: dict) -> str:
-    return f"event: {event}\ndata: {json.dumps(data)}\n\n"
-
-
-def _view_for(visitor_id: str) -> dict:
-    database = SessionLocal()
-    try:
-        return build_view(database, visitor_id)
-    finally:
-        database.close()
+    return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
 
 
 @router.get("/stream")
@@ -40,17 +31,20 @@ async def stream(request: Request):
     async def event_generator():
         queue = broker.subscribe()
         try:
-            view = _view_for(visitor_id)
+            snapshot = await asyncio.to_thread(current_snapshot)
+            view = snapshot.view_for(visitor_id)
             yield _sse("snapshot", {"routes": list(view.values())})
 
             while not await request.is_disconnected():
                 try:
-                    await asyncio.wait_for(queue.get(), timeout=HEARTBEAT_SECONDS)
+                    snapshot = await asyncio.wait_for(
+                        queue.get(), timeout=HEARTBEAT_SECONDS
+                    )
                 except asyncio.TimeoutError:
                     yield ": keepalive\n\n"
                     continue
 
-                new_view = _view_for(visitor_id)
+                new_view = snapshot.view_for(visitor_id)
                 for change in diff_views(view, new_view):
                     yield _sse("change", change)
                 view = new_view

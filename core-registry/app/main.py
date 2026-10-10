@@ -2,8 +2,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import apps, route_versions, routes, stream, visits
+from app.services.broker import broker
+from app.services.stream import current_snapshot
 
 app = FastAPI(title="Core Registry")
+
+broker.set_snapshot_builder(current_snapshot)
 
 # Explicit origin (not "*") so the orchestrator can send the ab_id cookie.
 app.add_middleware(

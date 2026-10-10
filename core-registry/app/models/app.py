@@ -1,6 +1,6 @@
 import enum
 
-from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy import CheckConstraint, Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 from app.db.session import Base
@@ -21,6 +21,13 @@ class App(Base):
     )
     name = Column(String, nullable=False)
     position = Column(String, nullable=False)
+
+    __table_args__ = (
+        CheckConstraint(
+            "position IN ('navigation', 'sidebar', 'center')",
+            name="ck_apps_position",
+        ),
+    )
 
     route_version = relationship("RouteVersion", back_populates="apps")
     files = relationship(

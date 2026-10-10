@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import {initiateAndObserveMicroApp} from "@/router/WebComponent.js";
-import {openCoreStream, postVisit} from "@/stream/coreStream.js";
+import {openCoreStream, onAppChange, postVisit} from "@/stream/coreStream.js";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -20,7 +20,6 @@ router.afterEach((to) => {
 // Bumped by the stream when a route is added/removed so the nav can refresh.
 export const routesUpdated = ref(0);
 
-// Routes flagged with this link render in the sidebar instead of as a page.
 const SIDEBAR_LINK = "**";
 
 export const sidebar = ref({ root: null, apps: [] });
@@ -71,15 +70,17 @@ export const loadRoutes = async () => {
           routesUpdated.value++;
         }
 
-        if (change.type === "removed") {
-          if (router.currentRoute.value.path !== streamRoute.link) {
-            router.replace(router.currentRoute.value.fullPath);
-          } else {
-            router.back();
-          }
+        if (
+          change.type === "removed" &&
+          router.currentRoute.value.path === streamRoute.link
+        ) {
+          router.back();
         }
 
-        if (!router.hasRoute(streamRoute.name) && (change.type === "added" || change.type === "modified")) {
+        if (
+          !router.hasRoute(streamRoute.name) && 
+          (change.type === "added" || change.type === "modified")
+        ) {
           addNewRoute({
             id: linkToId(streamRoute.link),
             path: streamRoute.link,
@@ -90,7 +91,7 @@ export const loadRoutes = async () => {
 
           router.replace(router.currentRoute.value.fullPath);
         }
-      },
+      }
     });
   });
 };
@@ -121,6 +122,19 @@ const addNewRoute = (route) => {
   router.addRoute({path: route.path, component: newComponent, name: route.routeName, meta: {routeId: route.id, apps: route.apps}});
 }
 
-await loadRoutes();
+// The web component swaps its own resources live; here we only keep the route's
+// stored apps current so a route that isn't mounted right now still mounts with
+// the new resources next time it is visited.
+onAppChange((change) => {
+  if (change.route.link === SIDEBAR_LINK) {
+    updateSidebar(change.route);
+    return;
+  }
+
+  const record = router.getRoutes().find((route) => route.name === change.route.name);
+  if (record) {
+    record.meta.apps = change.route.apps;
+  }
+});
 
 export default router;

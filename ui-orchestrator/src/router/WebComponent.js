@@ -1,3 +1,4 @@
+import { onAppChange } from "@/stream/coreStream.js";
 
 const createWebComponent = (name, childElements) => {
     return class WebComponentClass extends HTMLElement {
@@ -24,48 +25,17 @@ const createWebComponent = (name, childElements) => {
             }
         }
 
-        attributeChangedCallback(name, oldValue, newValue) {
-            const appContent = this.shadow.getElementById(this.name);
-
-            if(appContent != null && oldValue !== null && oldValue !== newValue) {
-                if (name === "js-url" || name === "props") {
-                    appContent.remove();
-
-                    for (let url in this.scriptUrls) {
-                        this.shadow.querySelectorAll(`script[src="${url}"]`)[0]?.remove();
-                    }
-
-                    ;(async () => {
-                        await this.loadJSAndMountApp();
-                    })();
-                } else if (name === "css-url") {
-                    for (let url in this.stylesheetsUrls) {
-                        this.shadow.querySelector(`link[href="${url}"]`)?.remove();
-                    }
-
-                    ;(async () => {
-                        await this.loadCSS();
-                    })();
-                }
-            }
-        }
-
-
         async loadCSS() {
-
             if (this.hasAttribute("css-url") && this.getAttribute("css-url") != null) {
                 const stylesheets = JSON.parse(this.getAttribute("css-url"));
                 for(let styleSheet of stylesheets) {
                     this.stylesheetsUrls.push(styleSheet);
-                    await this.loadResource(
-                        styleSheet,
-                        {
-                            element: "link",
-                            type: "text/css",
-                            attribute: "href",
-                            rel: "stylesheet"
-                        }
-                    );
+                    await this.loadResource(styleSheet, {
+                        element: "link",
+                        type: "text/css",
+                        attribute: "href", 
+                        rel: "stylesheet"
+                    });
                 }
             }
         }
@@ -75,14 +45,7 @@ const createWebComponent = (name, childElements) => {
                 const scripts = JSON.parse(this.getAttribute("js-url"));
                 for(let script of scripts) {
                     this.scriptUrls.push(script);
-                    await this.loadResource(
-                        script,
-                        {
-                            element: "script",
-                            type: "module",
-                            attribute: "src"
-                        }
-                    );
+                    await this.loadResource(script,{ element: "script", type: "module", attribute: "src"});
                 }
 
                 if(window[`${this.name}_mount`]) {
@@ -93,7 +56,12 @@ const createWebComponent = (name, childElements) => {
                     const appMountContainer = document.createElement("div");
                     appMountContainer.id = this.name;
                     this.shadowRoot.append(appMountContainer);
-                    await window[`${this.name}_mount`](appMountContainer, this.shadowRoot, this.childElements, properties);
+                    await window[`${this.name}_mount`](
+                        appMountContainer,
+                        this.shadowRoot,
+                        this.childElements,
+                        properties
+                    );
                 }
             }
         }
@@ -126,6 +94,34 @@ const createWebComponent = (name, childElements) => {
                 }
             })
         }
+
+        attributeChangedCallback(name, oldValue, newValue) {
+            const appContent = this.shadow.getElementById(this.name);
+
+            if(appContent != null && oldValue !== null && oldValue !== newValue) {
+                if (name === "js-url" || name === "props") {
+                    appContent.remove();
+
+                    for (let url in this.scriptUrls) {
+                        this.shadow.querySelectorAll(`script[src="${url}"]`)[0]?.remove();
+                    }
+
+                    ;(async () => {
+                        await this.loadJSAndMountApp();
+                    })();
+                } else if (name === "css-url") {
+                    for (let url in this.stylesheetsUrls) {
+                        this.shadow.querySelector(`link[href="${url}"]`)?.remove();
+                    }
+
+                    ;(async () => {
+                        await this.loadCSS();
+                    })();
+                }
+            }
+        }
+
+        
     }
 }
 
@@ -152,6 +148,13 @@ export const initiateAndObserveMicroApp = async (args, data = null) => {
     if (!customElements.get(data.name)) {
         customElements.define(data.name, createWebComponent(data.name, element.children));
     }
+
+    onAppChange((change) => {
+        if (change.app.name !== data.name) return;
+
+        element.setAttribute("css-url", JSON.stringify(change.app.css));
+        element.setAttribute("js-url", JSON.stringify(change.app.js));
+    });
 }
 
 export default createWebComponent;

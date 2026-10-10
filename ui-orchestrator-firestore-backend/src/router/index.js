@@ -95,7 +95,12 @@ const addNewRoute = (route) => {
     },
   };
 
-  router.addRoute({path: route.path, component: newComponent, name: route.routeName, meta: {routeId: route.id, apps: route.apps}});
+  router.addRoute({
+    path: route.path, 
+    component: newComponent, 
+    name: route.routeName, 
+    meta: {routeId: route.id, apps: route.apps}
+  });
 }
 
 await loadRoutes();

@@ -15,6 +15,7 @@ export default function SettingsForm() {
     const [module, setModule] = React.useState("");
 
     const { data } = useGetModulesQuery({studyProgram, year});
+    
     const updateYear = async (event) => {
         setYear(event.target.value);
         await localStorage.setItem('year', "" + event.target.value);
@@ -24,7 +25,9 @@ export default function SettingsForm() {
         if(event.target.value === 1) {
             await localStorage.setItem('studyProgram', "" + 1);
             await localStorage.setItem('module', "" + 1);
-            dispatchCustomEvent("studyProgramsSettingsUpdated", {detail: {studyProgram: 1, module: 1}});
+            dispatchCustomEvent("studyProgramsSettingsUpdated", {
+                detail: {studyProgram: 1, module: 1}
+            });
         } else {
             setStudyProgram(2);
             await localStorage.setItem('studyProgram', "" + 2);
@@ -40,9 +43,10 @@ export default function SettingsForm() {
         setModule(event.target.value);
         await localStorage.setItem('module', "" + event.target.value);
 
-        dispatchCustomEvent("studyProgramsSettingsUpdated", {detail: {studyProgram: studyProgram, module: event.target.value}});
+        dispatchCustomEvent("studyProgramsSettingsUpdated", {
+            detail: {studyProgram: studyProgram, module: event.target.value}
+        });
     };
-
 
     const dispatchCustomEvent = (name, props) => {
         const event = new CustomEvent(name, {detail: props});
