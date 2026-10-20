@@ -45,7 +45,6 @@ watch(routesUpdated, refreshSidebar);
       <div id="apps"></div>
   </div>
   <div v-else id="sidebarButton">
-      else
   </div>
   <div id="pageContent">
     <router-view :key="$route.fullPath"></router-view>
@@ -53,22 +52,22 @@ watch(routesUpdated, refreshSidebar);
 </template>
 
 <style scoped>
-#sidebar {
-  height: 100vh;
-  max-width: 400px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 40px;
-  padding: 20px;
-  background-color: #f5f7f7;
-  border-right: 1px solid #e2e8f0;
-  position: fixed;
-}
-
-#pageContent {
+    #sidebar {
+    height: 100vh;
+    max-width: 400px;
     width: 100%;
-    margin-left: 400px;
-}
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    padding: 20px;
+    background-color: #f5f7f7;
+    border-right: 1px solid #e2e8f0;
+    position: fixed;
+    }
+
+    #pageContent {
+        width: 100%;
+        margin-left: 400px;
+    }
 
 </style>

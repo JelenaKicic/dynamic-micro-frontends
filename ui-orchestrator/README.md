@@ -1,12 +1,14 @@
 # UI Orchestrator
-The UI Orchestrator is a core component of the system, designed to dynamically configure itself based on data from a Firestore database. At compile-time, the application is not aware of the number of routes it will manage or which applications it will load. Key features of the UI Orchestrator include:
+The UI Orchestrator builds itself at runtime from configuration served by the backend. At compile-time it does not know which routes it will have or which micro-applications it will load.
 
-Dynamic Configuration: Subscribes to Firestore to read and configure routes and applications in real-time.
-Micro-Application Management: Loads specific micro-applications into a sidebar that remains consistent across all routes.
-Template Management: Uses predefined templates for creating new routes.
-Web Component Framework: Provides a framework for creating and defining web components, including methods for loading external applications within these components.
-Data-Driven Presentation: Relies on a data repository to ensure the application is both valid and functional.
-The UI Orchestrator is built using the Vue framework, which is ideal for this project due to its capability to add routes at runtime and provide dynamically built templates to these routes.
+It connects to the backend over a live stream (Server-Sent Events) and reacts to changes in real time:
+
+- **Dynamic routing:** adds, updates, and removes routes on the fly as the backend stream changes.
+- **Micro-application loading:** mounts micro-apps into each route as web components, and keeps a shared sidebar consistent across all routes.
+- **Live updates:** picks up route and app changes immediately, without a rebuild or reload.
+- **Visit tracking:** reports each visited route back to the backend.
+
+It is built with Vue, which lets routes be added at runtime and rendered from dynamically built templates.
 
 ## Project Setup
 

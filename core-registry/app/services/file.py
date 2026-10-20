@@ -36,9 +36,13 @@ def replace_files(
         else:
             to_create.append(f)
 
-    for db_file in existing.values():
-        if db_file.id not in payload_ids:
-            db.delete(db_file)
+    ids_to_delete = [
+        file_id for file_id in existing if file_id not in payload_ids
+    ]
+    if ids_to_delete:
+        db.query(File).filter(File.id.in_(ids_to_delete)).delete(
+            synchronize_session="evaluate"
+        )
 
     result.extend(create_files(db, app_id, to_create))
     return result

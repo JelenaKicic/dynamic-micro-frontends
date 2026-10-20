@@ -90,125 +90,125 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.announcements {
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 32px 20px;
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  color: #1f2933;
-}
+  .announcements {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 32px 20px;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #1f2933;
+  }
 
-h1 {
-  font-size: 28px;
-  font-weight: 700;
-  margin: 0 0 24px;
-  color: #1d4ed8;
-}
+  h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 24px;
+    color: #1d4ed8;
+  }
 
-.tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 28px;
-}
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 28px;
+  }
 
-.tab {
-  border: 1px solid #cbd5e1;
-  background: #fff;
-  color: #475569;
-  padding: 8px 16px;
-  border-radius: 999px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
+  .tab {
+    border: 1px solid #cbd5e1;
+    background: #fff;
+    color: #475569;
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
 
-.tab:hover {
-  border-color: #1d4ed8;
-  color: #1d4ed8;
-}
+  .tab:hover {
+    border-color: #1d4ed8;
+    color: #1d4ed8;
+  }
 
-.tab.active {
-  background: #1d4ed8;
-  border-color: #1d4ed8;
-  color: #fff;
-}
+  .tab.active {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+    color: #fff;
+  }
 
-.state {
-  color: #64748b;
-  font-size: 15px;
-}
+  .state {
+    color: #64748b;
+    font-size: 15px;
+  }
 
-.state.error {
-  color: #dc2626;
-}
+  .state.error {
+    color: #dc2626;
+  }
 
-.list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
+  .list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
 
-.card {
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-left: 4px solid #1d4ed8;
-  border-radius: 8px;
-  padding: 18px 20px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-}
+  .card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #1d4ed8;
+    border-radius: 8px;
+    padding: 18px 20px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  }
 
-.card-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 12px;
-  margin-bottom: 8px;
-}
+  .card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
 
-.card-head h2 {
-  font-size: 17px;
-  font-weight: 600;
-  margin: 0;
-  color: #0f172a;
-}
+  .card-head h2 {
+    font-size: 17px;
+    font-weight: 600;
+    margin: 0;
+    color: #0f172a;
+  }
 
-.date {
-  font-size: 13px;
-  color: #94a3b8;
-  white-space: nowrap;
-}
+  .date {
+    font-size: 13px;
+    color: #94a3b8;
+    white-space: nowrap;
+  }
 
-.intro {
-  font-style: italic;
-  color: #475569;
-  margin: 0 0 6px;
-}
+  .intro {
+    font-style: italic;
+    color: #475569;
+    margin: 0 0 6px;
+  }
 
-.content {
-  margin: 0;
-  line-height: 1.55;
-  color: #334155;
-  white-space: pre-line;
-}
+  .content {
+    margin: 0;
+    line-height: 1.55;
+    color: #334155;
+    white-space: pre-line;
+  }
 
-.card-foot {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 14px;
-  font-size: 13px;
-  color: #64748b;
-}
+  .card-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 14px;
+    font-size: 13px;
+    color: #64748b;
+  }
 
-.signature {
-  font-weight: 500;
-}
+  .signature {
+    font-weight: 500;
+  }
 
-.expires {
-  color: #94a3b8;
-}
+  .expires {
+    color: #94a3b8;
+  }
 </style>

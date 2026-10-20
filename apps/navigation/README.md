@@ -1,6 +1,8 @@
 # Navigation
 
-This project is a highly dependent micro-frontend application designed to display navigation element by the routes data provided by the parent app. Passed data mast follow next framework: 
+Micro-frontend that renders the navigation menu from the routes data passed in by
+the host application. Expected input format:
+
 ```
 [
     {
@@ -10,20 +12,12 @@ This project is a highly dependent micro-frontend application designed to displa
 ]
 ```
 
-#### Project Setup
+**Stack:** Vue 3 built with Vite.
+
+## Run
 
 ```sh
 pnpm install
-```
-
-#### Compile and Hot-Reload for Development
-
-```sh
-pnpm dev
-```
-
-#### Compile and Minify for Production
-
-```sh
-pnpm build
+pnpm dev       # dev server
+pnpm build     # production build
 ```

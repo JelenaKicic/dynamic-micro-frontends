@@ -1,15 +1,14 @@
 # Class Schedule
 
-This project is a micro-frontend application designed to display the class schedule for the Faculty of Electrical Engineering in Banja Luka.
+Micro-frontend that displays the class schedule for the Faculty of Electrical
+Engineering in Banja Luka.
 
-## Available Scripts
+**Stack:** React, Redux Toolkit Query for data fetching, and MUI for the UI.
 
-In the project directory, you can run:
+## Run
 
-### `pnpm start`
-
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
-
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+```sh
+pnpm install
+pnpm start     # dev server at http://localhost:3000
+pnpm build     # production build
+```

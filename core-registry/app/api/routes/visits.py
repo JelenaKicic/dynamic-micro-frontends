@@ -1,10 +1,11 @@
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.db.session import get_db
 from app.models.route import Route
+from app.models.route_version import RouteVersion
 from app.schemas.visit import RouteStatistics, VisitCreate, VisitRead
 from app.services import route as route_service
 from app.services import visit as visit_service
@@ -34,7 +35,14 @@ def create_visit(
             samesite="lax",
         )
 
-    route = db.query(Route).filter(Route.link == data.link).first()
+    route = (
+        db.query(Route)
+        .options(
+            selectinload(Route.versions).selectinload(RouteVersion.apps)
+        )
+        .filter(Route.link == data.link)
+        .first()
+    )
     if route is None:
         raise HTTPException(status_code=404, detail="Route not found")
 

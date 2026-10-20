@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.models.app import App
 from app.schemas.app import AppCreate, AppUpdate
@@ -6,11 +6,16 @@ from app.services import file as file_service
 
 
 def get_apps(db: Session) -> list[App]:
-    return db.query(App).all()
+    return db.query(App).options(selectinload(App.files)).all()
 
 
 def get_app(db: Session, app_id: int) -> App | None:
-    return db.query(App).filter(App.id == app_id).first()
+    return (
+        db.query(App)
+        .options(selectinload(App.files))
+        .filter(App.id == app_id)
+        .first()
+    )
 
 
 def create_app(db: Session, data: AppCreate) -> App:
@@ -22,7 +27,6 @@ def create_app(db: Session, data: AppCreate) -> App:
     db.add(app)
     db.flush()
 
-    # Files are created together with the app, in the same transaction.
     file_service.create_files(db, app.id, data.files)
 
     db.commit()
@@ -35,7 +39,6 @@ def update_app(db: Session, app: App, data: AppUpdate) -> App:
     app.name = data.name
     app.position = data.position
 
-    # Files are replaced on update, in the same transaction.
     file_service.replace_files(db, app.id, data.files)
 
     db.commit()

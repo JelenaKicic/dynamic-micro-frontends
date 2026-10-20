@@ -47,7 +47,7 @@ export const loadRoutes = async () => {
         if (change.type === "removed") {
           if (router.currentRoute.value.path !== `/${change.doc.id}`) {
             router.replace(router.currentRoute.value.fullPath);
-          } else {
+            } else {
             router.back()
           }
         }

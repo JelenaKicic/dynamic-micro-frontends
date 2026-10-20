@@ -9,7 +9,6 @@ app = FastAPI(title="Core Registry")
 
 broker.set_snapshot_builder(current_snapshot)
 
-# Explicit origin (not "*") so the orchestrator can send the ab_id cookie.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],

@@ -15,8 +15,6 @@ def _bucket(visitor_id: str, route_link: str, total: int) -> int:
 
 
 def pick_version(visitor_id: str, route: Route):
-    # Only versions that actually have apps are visible, so an empty version
-    # never affects what a visitor sees until its first app is added
     active_versions = sorted(
         (version for version in route.versions if version.apps),
         key=lambda version: version.id,
@@ -62,10 +60,6 @@ def _pick_version_id(visitor_id: str, route: dict):
 
 
 class Snapshot:
-    # An immutable, fully serialized picture of every route/version/app/file,
-    # built once per change. Turning it into a per-visitor view is pure
-    # in-memory work (bucket + dict lookup), so N connections cost N hashes
-    # instead of N trips to the database.
     def __init__(self, routes: list[dict]):
         self.routes = routes
         self._view_cache: dict[tuple, dict] = {}
@@ -150,7 +144,6 @@ def diff_views(old_view: dict, new_view: dict) -> list:
 
         old_route = old_view[route_id]
 
-        # The route itself changed: link/name, or an app was added or removed.
         route_changed = (
             old_route["link"] != route["link"]
             or old_route["name"] != route["name"]
@@ -160,8 +153,6 @@ def diff_views(old_view: dict, new_view: dict) -> list:
             changes.append({"type": "modified", "route": route})
             continue
 
-        # Same route and same apps, so any difference is an app's resources
-        # changing: emit a per-app event so only that app's params update.
         old_apps = _apps_by_name(old_route)
         for app in route["apps"]:
             if old_apps[app["name"]] != app:

@@ -17,7 +17,10 @@ class App(Base):
 
     id = Column(Integer, primary_key=True)
     route_version_id = Column(
-        Integer, ForeignKey("route_versions.id"), nullable=False
+        Integer,
+        ForeignKey("route_versions.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     name = Column(String, nullable=False)
     position = Column(String, nullable=False)
@@ -31,5 +34,8 @@ class App(Base):
 
     route_version = relationship("RouteVersion", back_populates="apps")
     files = relationship(
-        "File", back_populates="app", cascade="all, delete-orphan"
+        "File",
+        back_populates="app",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
     )

@@ -23,31 +23,38 @@ def create_visit(db: Session, route_version_id: int, client_cookie: str) -> Visi
 def get_route_statistics(db: Session, route: Route) -> dict:
     rows = (
         db.query(
-            Visit.route_version_id,
+            RouteVersion.id,
+            RouteVersion.name,
+            RouteVersion.percentage,
             Visit.client_cookie,
             func.count(Visit.id).label("count"),
         )
-        .join(RouteVersion, Visit.route_version_id == RouteVersion.id)
+        .outerjoin(Visit, Visit.route_version_id == RouteVersion.id)
         .filter(RouteVersion.route_id == route.id)
-        .group_by(Visit.route_version_id, Visit.client_cookie)
+        .group_by(
+            RouteVersion.id,
+            RouteVersion.name,
+            RouteVersion.percentage,
+            Visit.client_cookie,
+        )
+        .order_by(RouteVersion.id)
         .all()
     )
 
-    counts = {}
-    for route_version_id, client_cookie, count in rows:
-        counts.setdefault(route_version_id, []).append(
-            {"client_cookie": client_cookie, "count": count}
-        )
-
-    versions = []
-    for version in sorted(route.versions, key=lambda version: version.id):
-        versions.append(
-            {
-                "route_version_id": version.id,
-                "name": version.name,
-                "percentage": version.percentage,
-                "visits": counts.get(version.id, []),
+    versions = {}
+    for version_id, name, percentage, client_cookie, count in rows:
+        version = versions.get(version_id)
+        if version is None:
+            version = {
+                "route_version_id": version_id,
+                "name": name,
+                "percentage": percentage,
+                "visits": [],
             }
-        )
+            versions[version_id] = version
+        if client_cookie is not None:
+            version["visits"].append(
+                {"client_cookie": client_cookie, "count": count}
+            )
 
-    return {"route_id": route.id, "versions": versions}
+    return {"route_id": route.id, "versions": list(versions.values())}

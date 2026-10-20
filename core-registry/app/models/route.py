@@ -12,5 +12,8 @@ class Route(Base):
     name = Column(String, nullable=False)
 
     versions = relationship(
-        "RouteVersion", back_populates="route", cascade="all, delete-orphan"
+        "RouteVersion",
+        back_populates="route",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
     )

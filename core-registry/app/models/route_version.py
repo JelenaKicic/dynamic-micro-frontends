@@ -8,7 +8,12 @@ class RouteVersion(Base):
     __tablename__ = "route_versions"
 
     id = Column(Integer, primary_key=True)
-    route_id = Column(Integer, ForeignKey("routes.id"), nullable=False)
+    route_id = Column(
+        Integer,
+        ForeignKey("routes.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     name = Column(String, nullable=False)
     percentage = Column(Integer, nullable=False, server_default="100")
 
@@ -21,5 +26,8 @@ class RouteVersion(Base):
 
     route = relationship("Route", back_populates="versions")
     apps = relationship(
-        "App", back_populates="route_version", cascade="all, delete-orphan"
+        "App",
+        back_populates="route_version",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
     )

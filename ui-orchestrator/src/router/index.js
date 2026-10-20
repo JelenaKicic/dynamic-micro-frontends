@@ -8,7 +8,7 @@ const router = createRouter({
   routes: [],
 });
 
-// Exposed so micro-apps can navigate via router.push without a full reload.
+// Exposed so micro-apps can navigate via router.push without a full reload
 window.__hostRouter = router;
 
 router.afterEach((to) => {
@@ -17,7 +17,7 @@ router.afterEach((to) => {
   }
 });
 
-// Bumped by the stream when a route is added/removed so the nav can refresh.
+// Bumped by the stream when a route is added/removed so the nav can refresh
 export const routesUpdated = ref(0);
 
 const SIDEBAR_LINK = "**";
@@ -122,9 +122,6 @@ const addNewRoute = (route) => {
   router.addRoute({path: route.path, component: newComponent, name: route.routeName, meta: {routeId: route.id, apps: route.apps}});
 }
 
-// The web component swaps its own resources live; here we only keep the route's
-// stored apps current so a route that isn't mounted right now still mounts with
-// the new resources next time it is visited.
 onAppChange((change) => {
   if (change.route.link === SIDEBAR_LINK) {
     updateSidebar(change.route);

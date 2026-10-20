@@ -15,7 +15,12 @@ class File(Base):
     __tablename__ = "files"
 
     id = Column(Integer, primary_key=True)
-    app_id = Column(Integer, ForeignKey("apps.id"), nullable=False)
+    app_id = Column(
+        Integer,
+        ForeignKey("apps.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     link = Column(String, nullable=False)
     type = Column(String, nullable=False)
 
